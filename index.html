@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#123b35">
+<title>دفتر کارکرد من</title>
+<style>
+:root{--bg:#f3f6f5;--card:#fff;--ink:#172a27;--muted:#667873;--primary:#176b5b;--line:#e1e9e6;--red:#b63c3c;--green:#19734e}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Tahoma,"Arial",sans-serif;font-size:15px}
+header{background:linear-gradient(135deg,#123b35,#1d7664);color:#fff;padding:22px 16px 18px;border-radius:0 0 22px 22px}
+header h1{margin:0 0 6px;font-size:22px}header p{margin:0;color:#d9eee8;font-size:13px}
+main{max-width:760px;margin:auto;padding:14px}
+.tabs{display:flex;gap:8px;overflow:auto;margin:0 0 14px}
+button,.btn{border:0;border-radius:11px;padding:11px 14px;font:inherit;cursor:pointer}
+.tabs button{background:#e3ece8;color:#31524a;white-space:nowrap}.tabs button.active{background:var(--primary);color:#fff}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px;margin-bottom:13px;box-shadow:0 3px 12px #193b3210}
+h2{font-size:17px;margin:0 0 13px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+label{display:block;color:var(--muted);font-size:12px;margin:0 0 5px}
+input,select,textarea{width:100%;padding:11px;border:1px solid #d5e1dc;border-radius:10px;background:#fff;color:var(--ink);font:inherit;min-width:0}
+textarea{min-height:68px;resize:vertical}.full{grid-column:1/-1}
+.primary{background:var(--primary);color:#fff;width:100%;font-weight:bold;margin-top:12px}
+.secondary{background:#e8f1ed;color:#205448}.danger{background:#fff0f0;color:var(--red)}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.stat{background:#f5f9f7;border-radius:12px;padding:12px}.stat small{display:block;color:var(--muted);margin-bottom:7px}.stat strong{font-size:19px;overflow-wrap:anywhere}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border:0}.row .sub{font-size:12px;color:var(--muted);margin-top:4px}
+.row .amount{font-weight:bold;white-space:nowrap}.actions{display:flex;gap:6px}.actions button{padding:7px 9px;font-size:12px}
+.pill{display:inline-block;background:#e7f3ee;color:#17634f;border-radius:20px;padding:4px 8px;font-size:11px}
+.muted{color:var(--muted);font-size:12px;line-height:1.7}.hidden{display:none!important}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap}.toolbar button{flex:1}
+hr{border:0;border-top:1px solid var(--line);margin:12px 0}
+@media(max-width:430px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.stats{grid-template-columns:1fr 1fr}.stat strong{font-size:16px}}
+</style>
+</head>
+<body>
+<header><h1 id="appTitle">دفتر کارکرد من</h1><p id="subtitle">ثبت کارکرد، دریافتی‌ها و مانده حساب چند نفر</p></header>
+<main>
+<div class="tabs">
+<button class="active" data-tab="dashboard" onclick="showTab('dashboard')">خلاصه حساب</button>
+<button data-tab="work" onclick="showTab('work')">ثبت کارکرد</button>
+<button data-tab="people" onclick="showTab('people')">اشخاص</button>
+<button data-tab="payment" onclick="showTab('payment')">ثبت دریافتی</button>
+<button data-tab="backup" onclick="showTab('backup')">پشتیبان</button>
+</div>
+
+<section id="dashboard">
+<div class="card"><h2>خلاصه کل حساب‌ها</h2><div class="stats">
+<div class="stat"><small>تعداد اشخاص</small><strong id="sPeople">۰</strong></div>
+<div class="stat"><small>روزهای کاری</small><strong id="sDays">۰</strong></div>
+<div class="stat"><small>مجموع دستمزد</small><strong id="sWages">۰</strong></div>
+<div class="stat"><small>مجموع دریافتی</small><strong id="sPaid">۰</strong></div>
+<div class="stat full"><small>مانده طلب کل</small><strong id="sBalance">۰</strong></div>
+</div></div>
+<div class="card"><h2>حساب هر شخص</h2><div id="personSummaries" class="muted">هنوز شخصی ثبت نشده است.</div></div>
+<div class="card"><h2>آخرین فعالیت‌ها</h2><div id="recent" class="muted">موردی ثبت نشده است.</div></div>
+</section>
+
+<section id="work" class="hidden">
+<div class="card"><h2>ثبت روز کاری</h2>
+<div class="grid">
+<div><label>شخص</label><select id="workPerson"></select></div>
+<div><label>نوع تقویم نمایشی</label><select id="calendarMode" onchange="updateDateHint()"><option value="jalali">شمسی</option><option value="gregorian">میلادی</option></select></div>
+<div><label>تاریخ (ورودی میلادی)</label><input id="workDate" type="date" onchange="updateDateHint()"><div class="muted" id="dateHint"></div></div>
+<div><label>دستمزد این روز</label><input id="workWage" type="number" min="0" step="any" placeholder="مثلاً 500"></div>
+<div><label>ساعت شروع</label><input id="startTime" type="time" value="08:00"></div>
+<div><label>ساعت پایان</label><input id="endTime" type="time" value="17:00"></div>
+<div><label>واحد پول</label><select id="currency"><option>دینار عراق</option><option>ریال ایران</option><option>تومان</option><option>دلار</option><option>واحد دیگر</option></select></div>
+<div><label>مدت کار</label><input id="duration" readonly placeholder="خودکار محاسبه می‌شود"></div>
+<div class="full"><label>توضیحات</label><textarea id="workNote" placeholder="محل کار یا توضیحات..."></textarea></div>
+</div>
+<button class="primary" onclick="addWork()">ثبت کارکرد</button>
+<p class="muted">اگر ساعت پایان از ساعت شروع کمتر باشد، برنامه آن را کار تا روز بعد در نظر می‌گیرد. تاریخ در این نسخه با ورودی میلادی ذخیره می‌شود و معادل شمسی آن نمایش داده می‌شود.</p>
+</div>
+<div class="card"><h2>سوابق کارکرد</h2><div id="workList"></div></div>
+</section>
+
+<section id="people" class="hidden">
+<div class="card"><h2>افزودن شخص</h2><label>نام شخص</label><input id="personName" placeholder="مثلاً علی"><button class="primary" onclick="addPerson()">افزودن شخص</button></div>
+<div class="card"><h2>فهرست اشخاص</h2><div id="peopleList"></div></div>
+</section>
+
+<section id="payment" class="hidden">
+<div class="card"><h2>ثبت مبلغ دریافتی</h2><div class="grid">
+<div><label>شخص</label><select id="paymentPerson"></select></div>
+<div><label>تاریخ</label><input id="paymentDate" type="date"></div>
+<div><label>مبلغ دریافتی</label><input id="paymentAmount" type="number" min="0" step="any" placeholder="مثلاً 2000"></div>
+<div><label>واحد پول</label><select id="paymentCurrency"><option>دینار عراق</option><option>ریال ایران</option><option>تومان</option><option>دلار</option><option>واحد دیگر</option></select></div>
+<div class="full"><label>توضیحات</label><input id="paymentNote" placeholder="مثلاً پیش‌پرداخت"></div>
+</div><button class="primary" onclick="addPayment()">ثبت دریافتی</button></div>
+<div class="card"><h2>سوابق دریافتی</h2><div id="paymentList"></div></div>
+</section>
+
+<section id="backup" class="hidden">
+<div class="card"><h2>پشتیبان‌گیری و بازیابی</h2>
+<div class="pill" id="autoBackupStatus">پشتیبان خودکار محلی فعال است</div>
+<p>اطلاعات این نسخه فعلاً فقط در حافظه همین مرورگر/گوشی ذخیره می‌شود. برای انتقال به گوشی دیگر یا جلوگیری از حذف اطلاعات، فایل پشتیبان بگیرید و آن را در جای امن یا فضای ابری شخصی خود نگه دارید.</p>
+<div class="toolbar"><button class="secondary" onclick="exportBackup()">تهیه فایل پشتیبان</button><button class="secondary" onclick="document.getElementById('backupFile').click()">بازیابی از فایل</button></div>
+<input id="backupFile" class="hidden" type="file" accept=".json,application/json" onchange="importBackup(event)">
+<hr><p class="muted">ورود با ایمیل و پشتیبان‌گیری خودکار ابری در این فایل اولیه فعال نیست و برای آن باید سرور امن و حساب کاربری راه‌اندازی شود. فایل پشتیبان شامل نام اشخاص، کارکردها و دریافتی‌هاست.</p>
+</div>
+<div class="card"><h2>تنظیمات</h2><div class="grid">
+<div><label>زبان برنامه</label><select id="language" onchange="setLanguage(this.value)"><option value="fa">فارسی</option><option value="ar">العربية</option></select></div>
+<div><label>واحد پول پیش‌فرض</label><select id="defaultCurrency" onchange="saveSettings()"><option>دینار عراق</option><option>ریال ایران</option><option>تومان</option><option>دلار</option><option>واحد دیگر</option></select></div>
+</div><p class="muted">تغییر زبان، عنوان‌ها و دکمه‌های اصلی را تغییر می‌دهد؛ داده‌های ثبت‌شده پاک نمی‌شوند.</p></div>
+</section>
+</main>
+<script>
+const KEY='workbook_v1', BACKUP_KEY='workbook_autobackup_v1';
+const EMPTY_DB={"people":[],"works":[],"payments":[],"settings":{"language":"fa","currency":"دینار عراق"}};
+function validDb(x){return x && Array.isArray(x.people) && Array.isArray(x.works) && Array.isArray(x.payments)}
+function loadDb(){
+  try { const primary=JSON.parse(localStorage.getItem(KEY)||'null'); if(validDb(primary)) return primary; } catch(e){}
+  try { const backup=JSON.parse(localStorage.getItem(BACKUP_KEY)||'null'); if(validDb(backup)) return backup; } catch(e){}
+  return JSON.parse(JSON.stringify(EMPTY_DB));
+}
+let db=loadDb();
+const $=id=>document.getElementById(id);
+const num=n=>Number(n||0).toLocaleString(db.settings.language==='ar'?'ar':'fa-IR',{maximumFractionDigits:2});
+const money=n=>num(n);
+function save(){
+ const snapshot=JSON.stringify(db);
+ // Two local copies: the working data and a rolling recovery snapshot.
+ localStorage.setItem(BACKUP_KEY,snapshot);
+ localStorage.setItem(KEY,snapshot);
+ render();
+ updateAutoBackupStatus();
+}
+function updateAutoBackupStatus(){
+ const el=$('autoBackupStatus');
+ if(el) el.textContent='پشتیبان خودکار محلی فعال است · آخرین ذخیره: '+new Date().toLocaleString(db.settings.language==='ar'?'ar':'fa-IR');
+}
+// Refresh a local recovery snapshot when the app is backgrounded/closed.
+window.addEventListener('pagehide',()=>{
+ try { const snapshot=JSON.stringify(db); localStorage.setItem(BACKUP_KEY,snapshot); localStorage.setItem(KEY,snapshot); } catch(e){}
+});
+document.addEventListener('visibilitychange',()=>{
+ if(document.visibilityState==='hidden'){
+  try { const snapshot=JSON.stringify(db); localStorage.setItem(BACKUP_KEY,snapshot); localStorage.setItem(KEY,snapshot); } catch(e){}
+ }
+});
+function showTab(t){document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden'));$(t).classList.remove('hidden');document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));render()}
+function today(){return new Date().toISOString().slice(0,10)}
+$('workDate').value=today();$('paymentDate').value=today();
+function jalali(gdate){
+ if(!gdate)return '';let [gy,gm,gd]=gdate.split('-').map(Number);
+ let gdm=[0,31,(gy%4===0&&gy%100!==0)||gy%400===0?29:28,31,30,31,30,31,31,30,31,30,31];
+ let gy2=gm>2?gy+1:gy;let days=355666+365*gy+Math.floor((gy2+3)/4)-Math.floor((gy2+99)/100)+Math.floor((gy2+399)/400)+gd;
+ for(let i=0;i<gm;i++)days+=gdm[i];
+ let jy=-1595;let jdn=days-79;let jnp=Math.floor(jdn/12053);jdn%=12053;jy+=33*jnp+4*Math.floor(jdn/1461);jdn%=1461;
+ if(jdn>=366){jy+=Math.floor((jdn-1)/365);jdn=(jdn-1)%365}
+ let jm,jd;if(jdn<186){jm=1+Math.floor(jdn/31);jd=1+jdn%31}else{jm=7+Math.floor((jdn-186)/30);jd=1+(jdn-186)%30}
+ return `${jy}/${String(jm).padStart(2,'0')}/${String(jd).padStart(2,'0')}`;
+}
+function updateDateHint(){let d=$('workDate').value;$('dateHint').textContent=d?($('calendarMode').value==='jalali'?'معادل شمسی: '+jalali(d):'تاریخ میلادی: '+d):''}
+function calcDuration(){let a=$('startTime').value,b=$('endTime').value;if(!a||!b){$('duration').value='';return}let [ah,am]=a.split(':').map(Number),[bh,bm]=b.split(':').map(Number);let mins=bh*60+bm-(ah*60+am);if(mins<0)mins+=1440;$('duration').value=Math.floor(mins/60)+' ساعت و '+(mins%60)+' دقیقه'}
+$('startTime').addEventListener('change',calcDuration);$('endTime').addEventListener('change',calcDuration);calcDuration();updateDateHint();
+function fillPeople(){let opts=db.people.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');$('workPerson').innerHTML=opts||'<option value="">ابتدا شخص اضافه کنید</option>';$('paymentPerson').innerHTML=opts||'<option value="">ابتدا شخص اضافه کنید</option>'}
+function addPerson(){let n=$('personName').value.trim();if(!n)return alert('نام شخص را وارد کنید.');db.people.push({id:(crypto.randomUUID ? crypto.randomUUID() : ('id-'+Date.now()+'-'+Math.random().toString(16).slice(2))),name:n});$('personName').value='';save()}
+function addWork(){let p=$('workPerson').value,d=$('workDate').value,w=Number($('workWage').value);if(!p)return alert('ابتدا یک شخص اضافه کنید.');if(!d||!Number.isFinite(w)||w<0)return alert('تاریخ و دستمزد معتبر وارد کنید.');db.works.push({id:(crypto.randomUUID ? crypto.randomUUID() : ('id-'+Date.now()+'-'+Math.random().toString(16).slice(2))),person:p,date:d,wage:w,start:$('startTime').value,end:$('endTime').value,currency:$('currency').value,note:$('workNote').value});$('workWage').value='';$('workNote').value='';save()}
+function addPayment(){let p=$('paymentPerson').value,d=$('paymentDate').value,a=Number($('paymentAmount').value);if(!p)return alert('ابتدا یک شخص اضافه کنید.');if(!d||!Number.isFinite(a)||a<=0)return alert('تاریخ و مبلغ معتبر وارد کنید.');db.payments.push({id:(crypto.randomUUID ? crypto.randomUUID() : ('id-'+Date.now()+'-'+Math.random().toString(16).slice(2))),person:p,date:d,amount:a,currency:$('paymentCurrency').value,note:$('paymentNote').value});$('paymentAmount').value='';$('paymentNote').value='';save()}
+function del(type,id){if(!confirm('این مورد حذف شود؟'))return;db[type]=db[type].filter(x=>x.id!==id);save()}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function personName(id){return db.people.find(p=>p.id===id)?.name||'شخص حذف‌شده'}
+function sum(a,k){return a.reduce((s,x)=>s+Number(x[k]||0),0)}
+function render(){
+ fillPeople();
+ let wages=sum(db.works,'wage'),paid=sum(db.payments,'amount'),days=db.works.length;
+ $('sPeople').textContent=num(db.people.length);$('sDays').textContent=num(days);$('sWages').textContent=money(wages);$('sPaid').textContent=money(paid);$('sBalance').textContent=money(wages-paid);
+ $('personSummaries').innerHTML=db.people.length?db.people.map(p=>{let ws=db.works.filter(x=>x.person===p.id),ps=db.payments.filter(x=>x.person===p.id),w=sum(ws,'wage'),v=sum(ps,'amount');return `<div class="row"><div><b>${esc(p.name)}</b><div class="sub">${num(ws.length)} روز کار · دریافتی ${money(v)}</div></div><div class="amount">${money(w-v)} مانده</div></div>`}).join(''):'هنوز شخصی ثبت نشده است.';
+ $('peopleList').innerHTML=db.people.length?db.people.map(p=>`<div class="row"><div><b>${esc(p.name)}</b><div class="sub">${num(db.works.filter(x=>x.person===p.id).length)} روز کار</div></div><button class="danger" onclick="deletePerson('${p.id}')">حذف</button></div>`).join(''):'موردی ثبت نشده است.';
+ $('workList').innerHTML=db.works.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(x=>`<div class="row"><div><b>${esc(personName(x.person))} · ${esc(x.date)}</b><div class="sub">${esc(x.start)} تا ${esc(x.end)} · ${esc(x.note)}</div></div><div class="actions"><span class="amount">${money(x.wage)}</span><button class="danger" onclick="del('works','${x.id}')">حذف</button></div></div>`).join('')||'موردی ثبت نشده است.';
+ $('paymentList').innerHTML=db.payments.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(x=>`<div class="row"><div><b>${esc(personName(x.person))} · ${esc(x.date)}</b><div class="sub">${esc(x.note)}</div></div><div class="actions"><span class="amount">${money(x.amount)}</span><button class="danger" onclick="del('payments','${x.id}')">حذف</button></div></div>`).join('')||'موردی ثبت نشده است.';
+ let acts=[...db.works.map(x=>({date:x.date,text:'کارکرد '+personName(x.person),amount:x.wage})),...db.payments.map(x=>({date:x.date,text:'دریافتی '+personName(x.person),amount:x.amount}))].sort((a,b)=>b.date.localeCompare(a.date));
+ $('recent').innerHTML=acts.slice(0,6).map(x=>`<div class="row"><div>${esc(x.text)}<div class="sub">${esc(x.date)}</div></div><b>${money(x.amount)}</b></div>`).join('')||'موردی ثبت نشده است.';
+ $('defaultCurrency').value=db.settings.currency||'دینار عراق';$('language').value=db.settings.language||'fa';
+}
+function deletePerson(id){if(!confirm('شخص و تمام سوابق کارکرد و دریافتی او حذف شود؟'))return;db.people=db.people.filter(p=>p.id!==id);db.works=db.works.filter(x=>x.person!==id);db.payments=db.payments.filter(x=>x.person!==id);save()}
+function exportBackup(){let blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='daftar-karkard-backup.json';a.click();URL.revokeObjectURL(a.href)}
+function importBackup(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!Array.isArray(x.people)||!Array.isArray(x.works)||!Array.isArray(x.payments))throw Error();if(!confirm('اطلاعات فعلی با اطلاعات فایل پشتیبان جایگزین شود؟'))return;db=x;db.settings=db.settings||{language:'fa',currency:'دینار عراق'};save();alert('بازیابی انجام شد.')}catch(_){alert('فایل پشتیبان معتبر نیست.')}};r.readAsText(f);e.target.value=''}
+function saveSettings(){db.settings.currency=$('defaultCurrency').value;save()}
+function setLanguage(v){db.settings.language=v;save();if(v==='ar'){document.documentElement.lang='ar';$('appTitle').textContent='دفتر العمل والحساب';$('subtitle').textContent='تسجيل العمل والمقبوضات والحسابات لعدة أشخاص';}else{document.documentElement.lang='fa';$('appTitle').textContent='دفتر کارکرد من';$('subtitle').textContent='ثبت کارکرد، دریافتی‌ها و مانده حساب چند نفر';}}
+render();updateAutoBackupStatus();
+</script>
+</body></html>
